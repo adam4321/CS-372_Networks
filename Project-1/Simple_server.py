@@ -9,12 +9,15 @@ Description:    Project 1 from OSU CS-372 Summer 2020. The project uses the
 
 import socket
 import sys
+import re
 
 # Global targets for the Client requests 
 TARGET_PORT = 80
 TARGET_URL = "gaia.cs.umass.edu"
 TARGET_HOST = "HTTP/1.1\r\nHost:gaia.cs.umass.edu\r\n\r\n"
 
+
+## FUNCTION DEFINITIONS  ######################################################
 
 # Python replacement for switch statement - chooses function pointer
 def switcher(arg):
@@ -24,7 +27,7 @@ def switcher(arg):
     }
 
     # Return the correct function definition or the string nothing
-    return switcher.get(str(arg), "nothing")
+    return switcher.get(str(arg), "incorrect argument")
 
 
 # First GET request
@@ -43,7 +46,7 @@ def first_GET(s):
     # Recieve the reply and print to console
     response = s.recv(2048)  
     print(response.decode())
-    print("**********************\n")
+    print("**********************")
 
 
 def second_GET(s):
@@ -51,6 +54,31 @@ def second_GET(s):
     request_2 = "GET /wireshark-labs/HTTP-wireshark-file3.html " + TARGET_HOST
     s.send(request_2.encode())
 
+    # Print out the connection information and get request response text
+    print()
+    print("**********************")
+    print("GET request 2")
+    print("**********************")
+    print(f"Request:{request_2}")
+
+    pattern = re.compile("</html>")
+
+    # Recieve the reply and print to console
+    while True:
+        response = s.recv(2048)
+        if not pattern.search(str(response)):
+            print(response.decode())
+        elif len(response) <= 0:
+            break
+        else:
+            print(response.decode())
+            break
+
+    print()
+    print("**********************")
+
+
+## MAIN #######################################################################
 
 def main():
     # Create a new socket instance and connect to required URL
@@ -60,17 +88,17 @@ def main():
     # Call the switch statement with the passed in argument
     if len(sys.argv) == 3:
         called_func = switcher(sys.argv[2])
-        if called_func != "nothing":
+        if called_func != "incorrect argument":
             called_func(s)
         else:
-            print("You must enter -c [1 or 2] as argument")
+            print("\nError: You must enter -c [1 or 2] as CLI argument")
     else:
-        print("You must enter -c [1 or 2] as argument")
+        print("\nError: You must enter -c [1 or 2] as CLI argument")
         
     # Close the socket
     s.close()
 
 
-# Declare the main function
+# Declare the file's entry point
 if __name__ == "__main__":
     main()
