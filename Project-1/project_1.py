@@ -10,6 +10,7 @@ Description:    Project 1 from OSU CS-372 Summer 2020. The project uses the
 import socket
 import sys
 import re
+from time import sleep
 
 
 ## Global variables  ##########################################################
@@ -75,11 +76,14 @@ def second_GET(s):
     print("**********************")
     print(f"Request:{request_2}")
 
+    # Pattern at the end of the transmission
     pattern = re.compile("</html>")
 
     # Recieve the reply and print to console
     while True:
         response = s.recv(2048)
+
+        # Use regex to find the ending </html> in the transmission
         if not pattern.search(str(response)):
             print(response.decode())
         elif len(response) <= 0:
@@ -95,45 +99,50 @@ def second_GET(s):
 def simple_server(s):
     # Reuse existing socket and Bind socket to Localhost and listen
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.settimeout(30)
     s.bind((HOST, PORT))
     s.listen()
 
-    # Accecpt an incoming connection
-    conn, addr = s.accept()
+    try:
+        # Accecpt an incoming connection
+        conn, addr = s.accept()
 
-    # If successful connection, then reply and then terminate
-    with conn:
-        # Print out the connection information and get request response text
-        print()
-        print("**********************")
-        print("Server Received")
-        print("**********************")
-        print('Connected by', addr, "\n")
-
-        # Maintain loop until connection fails or succeeds and response is sent
-        while True:
-            data = conn.recv(2048)
-            print(data.decode())
+        # If successful connection, then reply and then terminate
+        with conn:
+            # Print out the connection information and get request response text
+            print()
             print("**********************")
+            print("Server Received")
+            print("**********************")
+            print('Connected by', addr, "\n")
 
-            # If the GET request is malformed, then exit the loop
-            if not data:
+
+            # Maintain loop until connection fails or succeeds and response is sent
+            while True:
+                data = conn.recv(2048)
+                print(data.decode())
+                print("**********************")
+
+                # If the GET request is malformed, then exit the loop
+                if not data:
+                    break
+
+                # Server response payload
+                data = "HTTP/1.1 200 OK\r\n"\
+                        "Content-Type: text/html; charset=UTF-8\r\n\r\n"\
+                        "<html>Congratulations! You've downloaded the"\
+                        " first Wireshark lab file!</html>\r\n"
+
+                # Print server response to CLI
+                print("Server Sending")
+                print("**********************")
+                print(data)
+                print("**********************")
+
+                conn.sendall(data.encode())
                 break
-
-            # Server response payload
-            data = "HTTP/1.1 200 OK\r\n"\
-                    "Content-Type: text/html; charset=UTF-8\r\n\r\n"\
-                    "<html>Congratulations! You've downloaded the"\
-                    " first Wireshark lab file!</html>\r\n"
-
-            # Print server response to CLI
-            print("Server Sending")
-            print("**********************")
-            print(data)
-            print("**********************")
-
-            conn.sendall(data.encode())
-            break
+    except:
+        print("\nTimeout Error: Connetion must be made within 30 seconds")
         
 
 ## MAIN #######################################################################
