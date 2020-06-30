@@ -93,7 +93,8 @@ def second_GET(s):
 
 
 def simple_server(s):
-    # Bind socket to Localhost and listen
+    # Reuse existing socket and Bind socket to Localhost and listen
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((HOST, PORT))
     s.listen()
 
@@ -149,9 +150,11 @@ def main():
         if called_func != "incorrect argument":
             called_func(s)
         else:
-            print("\nError: You must enter -c [1 or 2] as CLI argument")
+            print("\nError: You must enter -c [1 or 2 or 3] as CLI argument")
+            print("If using 3 you must visit 127.0.0.1:5000 within your browser")
     else:
-        print("\nError: You must enter -c [1 or 2] as CLI argument")
+        print("\nError: You must enter -c [1 or 2 or 3] as CLI argument")
+        print("If using 3 you must visit 127.0.0.1:5000 within your browser")
         
     # Close the socket
     s.close()
