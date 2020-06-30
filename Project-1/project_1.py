@@ -105,7 +105,7 @@ def simple_server(s):
         # Print out the connection information and get request response text
         print()
         print("**********************")
-        print("Client GET request")
+        print("Server Received")
         print("**********************")
         print('Connected by', addr, "\n")
 
@@ -113,13 +113,23 @@ def simple_server(s):
         while True:
             data = conn.recv(2048)
             print(data.decode())
+            print("**********************")
+
+            # If the GET request is malformed, then exit the loop
             if not data:
                 break
 
+            # Server response payload
             data = "HTTP/1.1 200 OK\r\n"\
                     "Content-Type: text/html; charset=UTF-8\r\n\r\n"\
                     "<html>Congratulations! You've downloaded the"\
                     " first Wireshark lab file!</html>\r\n"
+
+            # Print server response to CLI
+            print("Server Sending")
+            print("**********************")
+            print(data)
+            print("**********************")
 
             conn.sendall(data.encode())
             break
