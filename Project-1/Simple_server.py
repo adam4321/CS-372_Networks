@@ -20,7 +20,7 @@ TARGET_URL = "gaia.cs.umass.edu"
 TARGET_HOST = "HTTP/1.1\r\nHost:gaia.cs.umass.edu\r\n\r\n"
 
 # Global targts for the simple server
-HOST = "127.0.0.1"
+HOST = "localhost"
 PORT = 50000
 
 
@@ -93,8 +93,37 @@ def second_GET(s):
 
 
 def simple_server(s):
-    print("Hello!")
+    # Bind socket to Localhost and listen
+    s.bind((HOST, PORT))
+    s.listen()
 
+    # Accecpt an incoming connection
+    conn, addr = s.accept()
+
+    # If successful connection, then reply and then terminate
+    with conn:
+        # Print out the connection information and get request response text
+        print()
+        print("**********************")
+        print("Client GET request")
+        print("**********************")
+        print('Connected by', addr, "\n")
+
+        # Maintain loop until connection fails or succeeds and response is sent
+        while True:
+            data = conn.recv(2048)
+            print(data.decode())
+            if not data:
+                break
+
+            data = "HTTP/1.1 200 OK\r\n"\
+                    "Content-Type: text/html; charset=UTF-8\r\n\r\n"\
+                    "<html>Congratulations! You've downloaded the"\
+                    " first Wireshark lab file!</html>\r\n"
+
+            conn.sendall(data.encode())
+            break
+        
 
 ## MAIN #######################################################################
 
@@ -102,9 +131,11 @@ def main():
     # Create a new socket instance
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Call the switch statement with the passed in argument
+    # CLI arg count must be 3
     if len(sys.argv) == 3:
         called_func = switcher(sys.argv[2])
+
+        # Call the switch statement with the passed in CLI argument
         if called_func != "incorrect argument":
             called_func(s)
         else:
