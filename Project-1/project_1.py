@@ -103,6 +103,9 @@ def simple_server(s):
     s.bind((HOST, PORT))
     s.listen()
 
+    print("\nConnect to 127.0.0.1:50000 from your web browser")
+    print("Simple Server started...\n")
+
     try:
         # Accecpt an incoming connection
         conn, addr = s.accept()
@@ -142,7 +145,7 @@ def simple_server(s):
                 conn.sendall(data.encode())
                 break
     except:
-        print("\nTimeout Error: Connetion must be made within 30 seconds")
+        print("\nTimeout Error: Connection must be made within 30 seconds")
         
 
 ## MAIN #######################################################################
