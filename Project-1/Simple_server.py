@@ -11,10 +11,17 @@ import socket
 import sys
 import re
 
+
+## Global variables  ##########################################################
+
 # Global targets for the Client requests 
 TARGET_PORT = 80
 TARGET_URL = "gaia.cs.umass.edu"
 TARGET_HOST = "HTTP/1.1\r\nHost:gaia.cs.umass.edu\r\n\r\n"
+
+# Global targts for the simple server
+HOST = "127.0.0.1"
+PORT = 50000
 
 
 ## FUNCTION DEFINITIONS  ######################################################
@@ -23,7 +30,8 @@ TARGET_HOST = "HTTP/1.1\r\nHost:gaia.cs.umass.edu\r\n\r\n"
 def switcher(arg):
     switcher = {
         "1": first_GET,
-        "2": second_GET
+        "2": second_GET,
+        "3": simple_server
     }
 
     # Return the correct function definition or the string nothing
@@ -32,8 +40,11 @@ def switcher(arg):
 
 # First GET request
 def first_GET(s):
-    # Form and make the 1st GET request
+    # 1st request
     request ="GET /wireshark-labs/INTRO-wireshark-file1.html " + TARGET_HOST
+
+    # Connect to required URL and make the 1st GET request
+    s.connect((TARGET_URL, TARGET_PORT))
     s.send(request.encode())
 
     # Print out the connection information and get request response text
@@ -50,8 +61,11 @@ def first_GET(s):
 
 
 def second_GET(s):
-    # Form and make the 2nd GET request
+    # Second request
     request_2 = "GET /wireshark-labs/HTTP-wireshark-file3.html " + TARGET_HOST
+
+    # Connect to required URL and make the 2nd GET request
+    s.connect((TARGET_URL, TARGET_PORT))
     s.send(request_2.encode())
 
     # Print out the connection information and get request response text
@@ -78,12 +92,15 @@ def second_GET(s):
     print("**********************")
 
 
+def simple_server(s):
+    print("Hello!")
+
+
 ## MAIN #######################################################################
 
 def main():
-    # Create a new socket instance and connect to required URL
+    # Create a new socket instance
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((TARGET_URL, TARGET_PORT))
 
     # Call the switch statement with the passed in argument
     if len(sys.argv) == 3:
