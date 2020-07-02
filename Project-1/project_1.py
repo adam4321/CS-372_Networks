@@ -3,8 +3,9 @@ Author:         Adam Wright
 Email:          wrighada@oregonstate.edu
 Date:           6/27/2020 
 Description:    Project 1 from OSU CS-372 Summer 2020. The project uses the
-                Python socket API to make a GET request and then uses it to
-                create a very simple web server.
+                Python socket API to make a 2 GET requests and then uses it to
+                create a very simple web server which can be reached from a local
+                web browser on 127.0.0.1 port 50000.
 """
 
 import socket
@@ -20,7 +21,7 @@ TARGET_PORT = 80
 TARGET_URL = "gaia.cs.umass.edu"
 TARGET_HOST = "HTTP/1.1\r\nHost:gaia.cs.umass.edu\r\n\r\n"
 
-# Global targts for the simple server
+# Global targts for the Simple Server
 HOST = "localhost"
 PORT = 50000
 
@@ -35,7 +36,7 @@ def switcher(arg):
         "3": simple_server
     }
 
-    # Return the correct function definition or the string nothing
+    # Return the correct function definition or the string "incorrect argument"
     return switcher.get(str(arg), "incorrect argument")
 
 
@@ -62,19 +63,19 @@ def first_GET(s):
 
 
 def second_GET(s):
-    # Second request
-    request_2 = "GET /wireshark-labs/HTTP-wireshark-file3.html " + TARGET_HOST
+    # 2nd request
+    request = "GET /wireshark-labs/HTTP-wireshark-file3.html " + TARGET_HOST
 
     # Connect to required URL and make the 2nd GET request
     s.connect((TARGET_URL, TARGET_PORT))
-    s.send(request_2.encode())
+    s.send(request.encode())
 
     # Print out the connection information and get request response text
     print()
     print("**********************")
     print("GET request 2")
     print("**********************")
-    print(f"Request:{request_2}")
+    print(f"Request:{request}")
 
     # Pattern at the end of the transmission
     pattern = re.compile("</html>")
@@ -97,7 +98,7 @@ def second_GET(s):
 
 
 def simple_server(s):
-    # Reuse existing socket and Bind socket to Localhost and listen
+    # Reuse existing socket and Bind socket to Localhost and listen for 30 sec.
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.settimeout(30)
     s.bind((HOST, PORT))
