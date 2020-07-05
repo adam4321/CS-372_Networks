@@ -164,10 +164,10 @@ def main():
             called_func(s)
         else:
             print("\nError: You must enter -c [1 or 2 or 3] as CLI argument")
-            print("If using 3 you must visit 127.0.0.1:5000 within your browser")
+            print("If option 3, then you must visit 127.0.0.1:5000 within your browser")
     else:
         print("\nError: You must enter -c [1 or 2 or 3] as CLI argument")
-        print("If using 3 you must visit 127.0.0.1:5000 within your browser")
+        print("If option 3, then you must visit 127.0.0.1:5000 within your browser")
         
     # Close the socket
     s.close()
