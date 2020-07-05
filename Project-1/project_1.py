@@ -152,8 +152,8 @@ def simple_server(s):
 ## MAIN #######################################################################
 
 def main():
-    # Create a new socket instance
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    error_msg = "\nError: You must enter -c [1 or 2 or 3] as CLI argument\n"\
+                "If option 3, then you must visit 127.0.0.1:5000 within your browser"
 
     # CLI arg count must be 3
     if len(sys.argv) == 3:
@@ -161,17 +161,19 @@ def main():
 
         # Call the switch statement with the passed in CLI argument
         if called_func != "incorrect argument":
-            called_func(s)
-        else:
-            print("\nError: You must enter -c [1 or 2 or 3] as CLI argument")
-            print("If option 3, then you must visit 127.0.0.1:5000 within your browser")
-    else:
-        print("\nError: You must enter -c [1 or 2 or 3] as CLI argument")
-        print("If option 3, then you must visit 127.0.0.1:5000 within your browser")
-        
-    # Close the socket
-    s.close()
+            # Create a new socket instance
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+            # Call the requested function
+            called_func(s)
+
+            # Close the socket
+            s.close()
+        else:
+            print(error_msg)
+    else:
+        print(error_msg)
+        
 
 # Declare the file's entry point
 if __name__ == "__main__":
