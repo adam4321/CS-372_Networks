@@ -1,6 +1,11 @@
-
-# Adapted from companion material available for the textbook Computer Networking: A Top-Down Approach, 6th Edition
-# Kurose & Ross ©2013
+"""
+Author:      Adam Wright
+Email:       wrighada@oregonstate.edu
+Date:        7/6/2020
+Description: Adapted from companion material available for the textbook
+             Computer Networking: A Top-Down Approach, 6th Edition
+             Kurose & Ross ©2013
+"""
 
 from socket import *
 import os
@@ -14,6 +19,7 @@ ICMP_ECHO_REQUEST = 8
 MAX_HOPS = 30
 TIMEOUT  = 2.0
 TRIES    = 2
+
 
 def checksum(string):
 	csum = 0
@@ -37,6 +43,7 @@ def checksum(string):
 	answer = answer >> 8 | (answer << 8 & 0xff00)
 	return answer
 
+
 def build_packet(data_size):
 	# First, make the header of the packet, then append the checksum to the header,
 	# then finally append the data
@@ -47,6 +54,7 @@ def build_packet(data_size):
 	packet = header + data + padding
 	return packet
 
+
 def get_route(hostname,data_size):
 	timeLeft = TIMEOUT
 	for ttl in range(1,MAX_HOPS):
@@ -54,10 +62,11 @@ def get_route(hostname,data_size):
 
 			destAddr = gethostbyname(hostname)
 
-			# SOCK_RAW is a powerful socket type. For more details:   http://sock-raw.org/papers/sock_raw
-			#Fill in start
+			# SOCK_RAW is a powerful socket type. 
+            # For more details:   http://sock-raw.org/papers/sock_raw
+			# Fill in start
 			# Make a raw socket named mySocket
-			#Fill in end
+			# Fill in end
 
 			# setsockopt method is used to set the time-to-live field.
 			mySocket.setsockopt(IPPROTO_IP, IP_TTL, struct.pack('I', ttl))
@@ -81,9 +90,9 @@ def get_route(hostname,data_size):
 				continue
 
 			else:
-				#Fill in start
-				#Fetch the icmp type from the IP packet
-				#Fill in end
+				# Fill in start
+				# Fetch the icmp type from the IP packet
+				# Fill in end
 
 				if types == 11:
 					bytes = struct.calcsize("d")
