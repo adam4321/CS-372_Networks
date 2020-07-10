@@ -32,29 +32,37 @@ def checksum(string):
 		csum = csum & 0xffffffff
 		count = count + 2
 
-	if countTo < len(string):
-		csum = csum + ord(string[len(string) - 1])
-		csum = csum & 0xffffffff
+    if countTo < len(string):
+    	csum = csum + ord(string[len(string) - 1])
+    	csum = csum & 0xffffffff
 
-	csum = (csum >> 16) + (csum & 0xffff)
-	csum = csum + (csum >> 16)
-	answer = ~csum
-	answer = answer & 0xffff
-	answer = answer >> 8 | (answer << 8 & 0xff00)
-	return answer
+    csum = (csum >> 16) + (csum & 0xffff)
+    csum = csum + (csum >> 16)
+    answer = ~csum
+    answer = answer & 0xffff
+    answer = answer >> 8 | (answer << 8 & 0xff00)
+    return answer
 
 
 def build_packet(data_size):
-	# First, make the header of the packet, then append the checksum to the header,
-	# then finally append the data
+    # First, make the header of the packet, then append the checksum to the header,
+    # then finally append the data
 
-	# Don’t send the packet yet, just return the final packet in this function.
-	# So the function ending should look like this
-	# Note: padding = bytes(data_size)
-	packet = header + data + padding
-	return packet
+    # struct contains 2 8 bit unsigned char fields and 3 16 bit unsigned short fields
+    header = struct.pack('!BBHHH', ICMP_ECHO_REQUEST, 0, 0, id, 1)
 
+    # The data passed to the routers 
+    data = 192 * 'Q'
 
+    # Note: padding = bytes(data_size)
+    padding = bytes(data_size - (sys.getsizeof(header) + sys.getsizeof(data)))
+
+    # Don’t send the packet yet, just return the final packet in this function.
+    # So the function ending should look like this
+    packet = header + data + padding
+    return packet
+
+    
 def get_route(hostname,data_size):
 	timeLeft = TIMEOUT
 	for ttl in range(1,MAX_HOPS):
@@ -66,8 +74,9 @@ def get_route(hostname,data_size):
             # For more details:   http://sock-raw.org/papers/sock_raw
 			# Fill in start
 			# Make a raw socket named mySocket
+            mySocket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)
 			# Fill in end
-
+            
 			# setsockopt method is used to set the time-to-live field.
 			mySocket.setsockopt(IPPROTO_IP, IP_TTL, struct.pack('I', ttl))
 			mySocket.settimeout(TIMEOUT)
@@ -92,6 +101,9 @@ def get_route(hostname,data_size):
 			else:
 				# Fill in start
 				# Fetch the icmp type from the IP packet
+
+
+
 				# Fill in end
 
 				if types == 11:
