@@ -140,7 +140,7 @@ def get_route(hostname,data_size):
 
 # MAIN ----------------------------------------------------------------------#
 
-if __name__ == '__main__':
+def main():
     data_size = 0
     if len(sys.argv) == 2:
         trace_hostname = sys.argv[1]
@@ -155,7 +155,9 @@ if __name__ == '__main__':
 
     try:
         get_route(trace_hostname, data_size)
-        # get_route("oregonstate.edu", data_size)
-        # get_route("gaia.cs.umass.edu", data_size)
     except:
         print('Error: Traceroute ended')
+
+
+if __name__ == '__main__':
+    main()
