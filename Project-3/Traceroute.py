@@ -51,12 +51,12 @@ def build_packet(data_size):
     # then finally append the data
 
     # Create a header with a zeroed checksum to pass to the checksum function
-    # Struct contains 2 8 bit unsigned char fields and 3 16 bit unsigned short fields
-    pid = os.getpid()
-    header = struct.pack('!BBHHH', ICMP_ECHO_REQUEST, 0, 0, pid, 1)
+    # Struct contains 2 8 bit unsigned char fields and 1 16 bit unsigned short field
+    header = struct.pack('!BBH', ICMP_ECHO_REQUEST, 0, 0)
 
-    # The data passed in the packet
-    data = bytes(52)
+    # The data passed in the packet are 2 unsigned short fields
+    pid = os.getpid()
+    data = struct.pack('!HH', pid, 1)
     valid_checksum = checksum(str(header + data))
 
     # Create the final header using the generated checksum
@@ -71,9 +71,9 @@ def build_packet(data_size):
     return packet
 
     
-def get_route(hostname,data_size):
+def get_route(hostname, data_size):
     timeLeft = TIMEOUT
-    for ttl in range(1,MAX_HOPS):
+    for ttl in range(1, MAX_HOPS):
         for tries in range(TRIES):
 
             destAddr = gethostbyname(hostname)
@@ -170,6 +170,7 @@ def main():
     try:
         get_route(trace_hostname, data_size)
     except:
+        print()
         print('Error: Traceroute ended')
 
 
