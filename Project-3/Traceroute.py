@@ -142,17 +142,31 @@ def get_route(hostname,data_size):
 
 def main():
     data_size = 0
-    if len(sys.argv) == 2:
+
+    # Make sure that hostname is passed as CLI argument
+    if len(sys.argv) == 1:
+        print("Error, Invalid call:  Traceroute.py [Hostname]")
+        print("                   :  Traceroute.py [Hostname] [data_size]")
+        return
+    # Set the value of hostname
+    elif len(sys.argv) == 2:
         trace_hostname = sys.argv[1]
-
-    if len(sys.argv) >= 3:
+    # Set the value of data_size if it is passed as a CLI option
+    elif len(sys.argv) == 3:
         data_size = int(sys.argv[2])
+    # Throw an error if too many args are passed
+    else:
+        print("Error, Invalid call:  Traceroute.py [Hostname]")
+        print("                   :  Traceroute.py [Hostname] [data_size]")
+        return
 
+    # Print the arglist and Hostname
     print()
     print('Argument List: {0}'.format(str(sys.argv)))
     print(f'** Python Simple Traceroute to {trace_hostname}')
     print()
 
+    # Run trace on the Hostname
     try:
         get_route(trace_hostname, data_size)
     except:
