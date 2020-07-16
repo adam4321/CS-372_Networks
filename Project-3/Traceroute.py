@@ -4,7 +4,8 @@ Email:       wrighada@oregonstate.edu
 Date:        7/6/2020
 Description: Adapted from companion material available for the textbook
              Computer Networking: A Top-Down Approach, 6th Edition
-             Kurose & Ross ©2013
+             Kurose & Ross ©2013. The program is a simple Python 3 
+             implementation of the Linux program traceroute.
 """
 
 from socket import *
@@ -47,9 +48,6 @@ def checksum(string):
 
 
 def build_packet(data_size):
-    # First, make the header of the packet, then append the checksum to the header,
-    # then finally append the data
-
     # Create a header with a zeroed checksum to pass to the checksum function
     # Struct contains 2 8 bit unsigned char fields and 1 16 bit unsigned short field
     header = struct.pack('!BBH', ICMP_ECHO_REQUEST, 0, 0)
@@ -65,8 +63,7 @@ def build_packet(data_size):
     # Note: padding = bytes(data_size)
     padding = bytes(data_size)
 
-    # Don’t send the packet yet, just return the final packet in this function.
-    # So the function ending should look like this
+    # Return the final packet
     packet = header + data + padding
     return packet
 
@@ -78,13 +75,8 @@ def get_route(hostname, data_size):
 
             destAddr = gethostbyname(hostname)
 
-			# SOCK_RAW is a powerful socket type. 
-            # For more details:   http://sock-raw.org/papers/sock_raw
-			# Fill in start
 			# Make a raw socket named mySocket
             mySocket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)
-
-			# Fill in end
             
 			# setsockopt method is used to set the time-to-live field.
             mySocket.setsockopt(IPPROTO_IP, IP_TTL, struct.pack('I', ttl))
@@ -108,12 +100,10 @@ def get_route(hostname, data_size):
                 continue
 
             else:
-				# Fill in start
 				# Fetch the icmp type from the IP packet
                 # Remove the set of bytes representing the header
                 icmp_header = recvPacket[20:28]
                 types, code, checksum, pid, sequence = struct.unpack('!BBHHH', icmp_header)
-				# Fill in end
 
                 if types == 11:
                     bytes = struct.calcsize("d")
@@ -143,8 +133,8 @@ def get_route(hostname, data_size):
 def main():
     data_size = 0
 
-    # Make sure that hostname is passed as CLI argument
-    if len(sys.argv) == 1:
+    # Make sure there are 1 or 2 CLI args and hostname is passed as CLI argument
+    if len(sys.argv) == 1 or len(sys.argv) > 3:
         print("Error, Invalid call:  Traceroute.py [Hostname]")
         print("                   :  Traceroute.py [Hostname] [data_size]")
         return
@@ -153,12 +143,8 @@ def main():
         trace_hostname = sys.argv[1]
     # Set the value of data_size if it is passed as a CLI option
     elif len(sys.argv) == 3:
+        trace_hostname = sys.argv[1]
         data_size = int(sys.argv[2])
-    # Throw an error if too many args are passed
-    else:
-        print("Error, Invalid call:  Traceroute.py [Hostname]")
-        print("                   :  Traceroute.py [Hostname] [data_size]")
-        return
 
     # Print the arglist and Hostname
     print()
