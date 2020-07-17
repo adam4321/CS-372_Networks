@@ -8,82 +8,103 @@ Description: Adapted from companion material available for the textbook
              implementation of the Linux program traceroute.
 """
 
-from socket import *
+import socket
 import os
 import sys
 import struct
 import time
 import select
-import binascii
+
+
+# GLOBAL VARIABLES ----------------------------------------------------------#
 
 ICMP_ECHO_REQUEST = 8
 MAX_HOPS = 30
-TIMEOUT  = 2.0
+TIMEOUT  = 2
 TRIES    = 2
 
 
 # FUNCTION DEFINITIONS ------------------------------------------------------#
 
-def checksum(string):
-    csum = 0
-    countTo = (len(string) // 2) * 2
+# Function to calculate the internet checksum
+# The provided checksum function was not accepting the header format
+# From the example implementation given by a TA
+# https://github.com/James-P-D/Traceroute/blob/master/src/Tracert/Tracert/Tracert.py
+# It follows rfc1071 https://tools.ietf.org/html/rfc1071
+def calc_checksum(header):
+    # Initialise checksum and overflow
+    checksum = 0
+    overflow = 0
 
-    count = 0
-    while count < countTo:
-        thisVal = ord(string[count+1]) * 256 + ord(string[count])
-        csum = csum + thisVal
-        csum = csum & 0xffffffff
-        count = count + 2
+    # For every word (16-bits)
+    for i in range(0, len(header), 2):
+        word = header[i] + (header[i+1] << 8)
 
-    if countTo < len(string):
-        csum = csum + ord(string[len(string) - 1])
-        csum = csum & 0xffffffff
+        # Add the current word to the checksum
+        checksum = checksum + word
+        # Separate the overflow
+        overflow = checksum >> 16
+        # While there is an overflow
+        while overflow > 0:        
+            # Remove the overflow bits
+            checksum = checksum & 0xFFFF
+            # Add the overflow bits
+            checksum = checksum + overflow
+            # Calculate the overflow again
+            overflow = checksum >> 16
 
-    csum = (csum >> 16) + (csum & 0xffff)
-    csum = csum + (csum >> 16)
-    answer = ~csum
-    answer = answer & 0xffff
-    answer = answer >> 8 | (answer << 8 & 0xff00)
-    return answer
+    # There's always a chance that after calculating the checksum
+    # across the header, there is *still* an overflow, so need to
+    # check for that
+    overflow = checksum >> 16
+    while overflow > 0:        
+        checksum = checksum & 0xFFFF
+        checksum = checksum + overflow
+        overflow = checksum >> 16
+
+    # Ones-compliment and return
+    checksum = ~checksum
+    checksum = checksum & 0xFFFF
+
+    return checksum
 
 
+# Function to build the icmp packet which will be sent
 def build_packet(data_size):
-    # Create a header with a zeroed checksum to pass to the checksum function
-    # Struct contains 2 8 bit unsigned char fields and 1 16 bit unsigned short field
-    header = struct.pack('!BBH', ICMP_ECHO_REQUEST, 0, 0)
-
-    # The data passed in the packet are 2 unsigned short fields
+    # Get the process id of the Traceroute instance
     pid = os.getpid()
-    data = struct.pack('!HH', pid, 1)
-    valid_checksum = checksum(str(header + data))
+    cleared_checksum = 0
+
+    # Create a header with a zeroed checksum to pass to the checksum function
+    header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, cleared_checksum, pid, 1)
+    valid_checksum = calc_checksum(header)
 
     # Create the final header using the generated checksum
-    header = struct.pack('!BBHHH', ICMP_ECHO_REQUEST, 0, valid_checksum, pid, 1)
+    header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, valid_checksum, pid, 1)
 
     # Note: padding = bytes(data_size)
-    padding = bytes(data_size)
+    data = bytes(data_size)
 
     # Return the final packet
-    packet = header + data + padding
+    packet = header + data
     return packet
 
-    
+
+# Function to send the packet to the passed in hostname   
 def get_route(hostname, data_size):
     timeLeft = TIMEOUT
     for ttl in range(1, MAX_HOPS):
         for tries in range(TRIES):
 
-            destAddr = gethostbyname(hostname)
-
-			# Make a raw socket named mySocket
-            mySocket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)
+            # Make a raw socket named mySocket
+            mySocket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
             
 			# setsockopt method is used to set the time-to-live field.
-            mySocket.setsockopt(IPPROTO_IP, IP_TTL, struct.pack('I', ttl))
+            mySocket.setsockopt(socket.IPPROTO_IP, socket.IP_TTL, struct.pack('I', ttl))
             mySocket.settimeout(TIMEOUT)
             try:
                 d = build_packet(data_size)
-                mySocket.sendto(d, (hostname, 0))
+                mySocket.sendto(d, (hostname, 1))
                 t= time.time()
                 startedSelect = time.time()
                 whatReady = select.select([mySocket], [], [], timeLeft)
@@ -96,29 +117,33 @@ def get_route(hostname, data_size):
                 if timeLeft <= 0:
                     print("  *        *        *    Request timed out.")
 
-            except timeout:
+            except socket.timeout:
                 continue
 
             else:
 				# Fetch the icmp type from the IP packet
                 # Remove the set of bytes representing the header
                 icmp_header = recvPacket[20:28]
-                types, code, checksum, pid, sequence = struct.unpack('!BBHHH', icmp_header)
+                types, code, checksum, pid, sequence = struct.unpack('bbHHh', icmp_header)
+                
+                # Try to get the hostname of the destination
+                dest_hostname = ''
+                try:
+                    destAddr = socket.gethostbyaddr(addr[0])
+                    if len(destAddr[0]) > 0:
+                        dest_hostname = destAddr[0]
+                # If it fails then print nothing
+                except:
+                    dest_hostname = ''
 
                 if types == 11:
-                    bytes = struct.calcsize("d")
-                    timeSent = struct.unpack("d", recvPacket[28:28 + bytes])[0]
-                    print("  %d    rtt=%.0f ms    %s" %(ttl, (timeReceived -t)*1000, addr[0]))
+                    print("  %d    rtt=%.0f ms    %s    %s" %(ttl, (timeReceived -t)*1000, addr[0], dest_hostname))
 
                 elif types == 3:
-                    bytes = struct.calcsize("d")
-                    timeSent = struct.unpack("d", recvPacket[28:28 + bytes])[0]
-                    print("  %d    rtt=%.0f ms    %s" %(ttl, (timeReceived-t)*1000, addr[0]))
+                    print("  %d    rtt=%.0f ms    %s    %s" %(ttl, (timeReceived-t)*1000, addr[0], dest_hostname))
 
                 elif types == 0:
-                    bytes = struct.calcsize("d")
-                    timeSent = struct.unpack("d", recvPacket[28:28 + bytes])[0]
-                    print("  %d    rtt=%.0f ms    %s" %(ttl, (timeReceived - timeSent)*1000, addr[0]))
+                    print("  %d    rtt=%.0f ms    %s    %s" %(ttl, (timeReceived - t)*1000, addr[0], dest_hostname))
                     return
 
                 else:
@@ -146,10 +171,20 @@ def main():
         trace_hostname = sys.argv[1]
         data_size = int(sys.argv[2])
 
-    # Print the arglist and Hostname
+    # Try to get the hostname of the destination
+    dest_hostname = ''
+    try:
+        destAddr = socket.gethostbyaddr(trace_hostname)
+        if len(destAddr[0]) > 0:
+            dest_hostname = '(' + str(destAddr[2][0]) + ')'
+    # If it fails then print nothing
+    except:
+        dest_hostname = ''
+
+    # Print the argument list, hostname, and destination IP
     print()
     print('Argument List: {0}'.format(str(sys.argv)))
-    print(f'** Python Simple Traceroute to {trace_hostname}')
+    print(f'** Python Simple Traceroute {trace_hostname} {dest_hostname}')
     print()
 
     # Run trace on the Hostname
