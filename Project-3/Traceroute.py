@@ -102,18 +102,23 @@ def get_route(hostname, data_size):
 			# setsockopt method is used to set the time-to-live field.
             mySocket.setsockopt(socket.IPPROTO_IP, socket.IP_TTL, struct.pack('I', ttl))
             mySocket.settimeout(TIMEOUT)
+            
             try:
                 d = build_packet(data_size)
                 mySocket.sendto(d, (hostname, 1))
+
                 t= time.time()
                 startedSelect = time.time()
                 whatReady = select.select([mySocket], [], [], timeLeft)
                 howLongInSelect = (time.time() - startedSelect)
+
                 if whatReady[0] == []: # Timeout
                     print("  *        *        *    Request timed out.")
+
                 recvPacket, addr = mySocket.recvfrom(1024)
                 timeReceived = time.time()
                 timeLeft = timeLeft - howLongInSelect
+
                 if timeLeft <= 0:
                     print("  *        *        *    Request timed out.")
 
@@ -132,6 +137,7 @@ def get_route(hostname, data_size):
                     destAddr = socket.gethostbyaddr(addr[0])
                     if len(destAddr[0]) > 0:
                         dest_hostname = destAddr[0]
+
                 # If it fails then print nothing
                 except:
                     dest_hostname = ''
@@ -149,6 +155,7 @@ def get_route(hostname, data_size):
                 else:
                     print("error")
                 break
+
             finally:
                 mySocket.close()
 
@@ -163,9 +170,11 @@ def main():
         print("Error, Invalid call:  Traceroute.py [Hostname]")
         print("                   :  Traceroute.py [Hostname] [data_size]")
         return
+
     # Set the value of hostname
     elif len(sys.argv) == 2:
         trace_hostname = sys.argv[1]
+
     # Set the value of data_size if it is passed as a CLI option
     elif len(sys.argv) == 3:
         trace_hostname = sys.argv[1]
@@ -177,11 +186,12 @@ def main():
         destAddr = socket.gethostbyaddr(trace_hostname)
         if len(destAddr[0]) > 0:
             dest_hostname = '(' + str(destAddr[2][0]) + ')'
+
     # If it fails then print nothing
     except:
         dest_hostname = ''
 
-    # Print the argument list, hostname, and destination IP
+    # Print the argument list, hostname, and destination IP if it is found
     print()
     print('Argument List: {0}'.format(str(sys.argv)))
     print(f'** Python Simple Traceroute {trace_hostname} {dest_hostname}')
