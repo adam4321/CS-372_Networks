@@ -83,15 +83,15 @@ def build_packet(data_size):
     pid = os.getpid()
     cleared_checksum = 0
 
+    # Create the remaining packet data
+    data = bytes(data_size)
+
     # Create a header with a zeroed checksum to pass to the checksum function
     header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, cleared_checksum, pid, 1)
-    valid_checksum = calc_checksum(header)
+    valid_checksum = calc_checksum(header + data)
 
     # Create the final header using the generated checksum
     header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, valid_checksum, pid, 1)
-
-    # Note: padding = bytes(data_size)
-    data = bytes(data_size)
 
     # Return the final packet
     packet = header + data
@@ -151,10 +151,10 @@ def get_route(hostname, data_size):
                     dest_hostname = ''
 
                 if types == 11:
-                    print("  %d    rtt=%.0f ms    %s    %s" %(ttl, (timeReceived -t)*1000, addr[0], dest_hostname))
+                    print("  %d    rtt=%.0f ms    %s    %s" %(ttl, (timeReceived - t)*1000, addr[0], dest_hostname))
 
                 elif types == 3:
-                    print("  %d    rtt=%.0f ms    %s    %s" %(ttl, (timeReceived-t)*1000, addr[0], dest_hostname))
+                    print("  %d    rtt=%.0f ms    %s    %s" %(ttl, (timeReceived - t)*1000, addr[0], dest_hostname))
 
                 elif types == 0:
                     print("  %d    rtt=%.0f ms    %s    %s" %(ttl, (timeReceived - t)*1000, addr[0], dest_hostname))
@@ -171,7 +171,10 @@ def get_route(hostname, data_size):
 # MAIN ----------------------------------------------------------------------#
 
 def main():
-    data_size = 0
+    # Set the default header, data, and packet sizes (argv[2] can alter data_size)
+    header_size = 8
+    data_size = 52
+    packet_size = header_size + data_size
 
     # Make sure there are 1 or 2 CLI args and hostname is passed as CLI argument
     if len(sys.argv) == 1 or len(sys.argv) > 3:
@@ -187,6 +190,7 @@ def main():
     elif len(sys.argv) == 3:
         trace_hostname = sys.argv[1]
         data_size = int(sys.argv[2])
+        packet_size = header_size + data_size
 
     # Try to get the hostname of the destination
     dest_hostname = ''
@@ -201,13 +205,12 @@ def main():
 
     # Print the argument list, hostname, and destination IP if it is found
     print()
-    print('Argument List: {0}'.format(str(sys.argv)))
-    print(f'** Python Simple Traceroute {trace_hostname} {dest_hostname}')
+    print(f'** Python Simple Traceroute {trace_hostname} {dest_hostname}, {MAX_HOPS} hops max, {packet_size} byte packets')
     print()
 
     # Run trace on the Hostname
     try:
-        get_route(trace_hostname, data_size)
+        get_route(trace_hostname, data_size)        
     except:
         print()
         print('Error: Traceroute ended')
