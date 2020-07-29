@@ -35,33 +35,35 @@ def main():
     # Accept a client connection
     conn, addr = s.accept()
 
+    conn_msg = "Type /q to quit\nEnter message to send..."
+    conn.send(conn_msg.encode())
     
 
-    # If successful connection, then reply and then terminate
-    with conn:
-        # Print out the connection information
-        print()
-        print("**************************************************")
-        print(f"Connected by ({addr})")
-        print("**************************************************")
-        print("Waiting for message...")
+    # # If successful connection, then reply and then terminate
+    # with conn:
+    #     # Print out the connection information
+    #     print()
+    #     print("**************************************************")
+    #     print(f"Connected by ({addr})")
+    #     print("**************************************************")
+    #     print("Waiting for message...\n")
         
-        # Send the connection message to the client
-        conn_msg = "Type /q to quit\nEnter message to send..."
-        conn.send(conn_msg.encode())
+    #     # Send the connection message to the client
+    #     conn_msg = "Type /q to quit\nEnter message to send..."
+    #     conn.send(conn_msg.encode())
 
-        # Maintain a connection with the client until /q is received
-        while True:
-            data = conn.recv(2048)
-            print(data.decode())
+    #     # Maintain a connection with the client until /q is received
+    #     while True:
+    #         data = conn.recv(2048)
+    #         print(data.decode())
 
-            # If the GET request is malformed, then exit the loop
-            if not data:
-                break
+    #         # If the GET request is malformed, then exit the loop
+    #         if not data:
+    #             break
 
-            # Test for /q connection close message
-            if data.decode() == '/q':
-                break
+    #         # Test for /q connection close message
+    #         if data.decode() == '/q':
+    #             break
 
 
             # # Print server response to CLI

@@ -27,6 +27,8 @@ def main():
 
     # Display a connection message
     print(f'Connected to: {HOST} on port: {PORT}')
+    response = s.recv(2048)
+    print(response.decode())
 
     # while True:
     #     message = s.recv(2048) 
