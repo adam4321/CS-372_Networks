@@ -10,6 +10,9 @@
 import socket
 import sys
 
+HOST = 'localhost'
+PORT = 52000
+
 # FUNCTION DEFINITIONS ------------------------------------------------------ #
 
 # Function to
@@ -18,11 +21,22 @@ import sys
 # MAIN ---------------------------------------------------------------------- #
 
 def main():
-    # Create a TCP socket for the  
+    # Create a TCP socket for the client
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    
-    print('hello')
+    s.connect((HOST, PORT))
+
+    # Display a connection message
+    print(f'Connected to: {HOST} on port: {PORT}')
+
+    # while True:
+    #     message = s.recv(2048) 
+    #     print(message)
+
+    close_msg = "/q"
+    s.send(close_msg.encode())
+
+    # Close the client socket
+    s.close()
 
 
 if __name__ == '__main__':

@@ -25,12 +25,59 @@ def main():
     # Create a TCP socket for the server 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((HOST, PORT))
+    s.listen()
     
-    # Gather the 
-    
-    
+    # Display the host and port
     print(f'Server listening on: {HOST} on port: {PORT}')
-    print(f'Connected by ()')
+    
+
+    # Accept a client connection
+    conn, addr = s.accept()
+
+    
+
+    # If successful connection, then reply and then terminate
+    with conn:
+        # Print out the connection information
+        print()
+        print("**************************************************")
+        print(f"Connected by ({addr})")
+        print("**************************************************")
+        print("Waiting for message...")
+        
+        # Send the connection message to the client
+        conn_msg = "Type /q to quit\nEnter message to send..."
+        conn.send(conn_msg.encode())
+
+        # Maintain a connection with the client until /q is received
+        while True:
+            data = conn.recv(2048)
+            print(data.decode())
+
+            # If the GET request is malformed, then exit the loop
+            if not data:
+                break
+
+            # Test for /q connection close message
+            if data.decode() == '/q':
+                break
+
+
+            # # Print server response to CLI
+            # print("Server Sending")
+            # print("**********************")
+            # print(data)
+            # print("**********************")
+
+            # conn.sendall(data.encode())
+            # break
+
+
+    # Display the IP and PORT of the connected client
+    print(f'Connected by ({addr[0]})')
+
+    # Close the socket
     s.close()
 
 
