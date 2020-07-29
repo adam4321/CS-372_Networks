@@ -23,7 +23,7 @@ TARGET_HOST = "HTTP/1.1\r\nHost:gaia.cs.umass.edu\r\n\r\n"
 
 # Global targts for the Simple Server
 HOST = "localhost"
-PORT = 50000
+PORT = 51000
 
 
 ## FUNCTION DEFINITIONS  ######################################################
