@@ -8,15 +8,9 @@
 ****************************************************************************'''
 
 import socket
-import sys
-
 
 HOST = 'localhost'
 PORT = 52000
-
-# FUNCTION DEFINITIONS ------------------------------------------------------ #
-
-# Function to
 
 
 # MAIN ---------------------------------------------------------------------- #
@@ -26,62 +20,60 @@ def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((HOST, PORT))
-    s.listen()
+    s.listen(5)
     
     # Display the host and port
+    print()
     print(f'Server listening on: {HOST} on port: {PORT}')
     
-
     # Accept a client connection
     conn, addr = s.accept()
 
-    conn_msg = "Type /q to quit\nEnter message to send..."
-    conn.send(conn_msg.encode())
-    
-
-    # # If successful connection, then reply and then terminate
-    # with conn:
-    #     # Print out the connection information
-    #     print()
-    #     print("**************************************************")
-    #     print(f"Connected by ({addr})")
-    #     print("**************************************************")
-    #     print("Waiting for message...\n")
+    # If connection was successful
+    try:
+        # Print connection information to the CLI
+        print("**************************************************")
+        print(f"Connected by {addr}")
+        print("Waiting for message...")
         
-    #     # Send the connection message to the client
-    #     conn_msg = "Type /q to quit\nEnter message to send..."
-    #     conn.send(conn_msg.encode())
+        # Send the connection message to the client
+        connect_msg = "Type /q to quit\nEnter message to send..."
+        conn.send(connect_msg.encode())
+        
+        # Recieve the clients message
+        data = conn.recv(2048)
 
-    #     # Maintain a connection with the client until /q is received
-    #     while True:
-    #         data = conn.recv(2048)
-    #         print(data.decode())
+        # Test for /q connection to close the connection
+        if data.decode()[:2] == "/q":
+            s.close()
+            return
+        else:
+            print(data.decode())
 
-    #         # If the GET request is malformed, then exit the loop
-    #         if not data:
-    #             break
+        
+        # Maintain a connection with the client until /q is received
+        while True:
+            # Create server message and send to client
+            data = input(">")
+            conn.send(data.encode())
 
-    #         # Test for /q connection close message
-    #         if data.decode() == '/q':
-    #             break
+            # Recieve the clients message and print
+            data = conn.recv(2048)
 
+            # Test for /q connection to close the connection
+            if data.decode()[:2] == "/q":
+                break
+            else:
+                print(data.decode())
+        
 
-            # # Print server response to CLI
-            # print("Server Sending")
-            # print("**********************")
-            # print(data)
-            # print("**********************")
-
-            # conn.sendall(data.encode())
-            # break
-
-
-    # Display the IP and PORT of the connected client
-    print(f'Connected by ({addr[0]})')
+    # Print an error if the connection failed
+    except:
+        print("Socket error")
 
     # Close the socket
     s.close()
-
+                
 
 if __name__ == '__main__':
     main()

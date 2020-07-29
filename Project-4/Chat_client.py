@@ -8,14 +8,9 @@
 ****************************************************************************'''
 
 import socket
-import sys
 
 HOST = 'localhost'
 PORT = 52000
-
-# FUNCTION DEFINITIONS ------------------------------------------------------ #
-
-# Function to
 
 
 # MAIN ---------------------------------------------------------------------- #
@@ -26,16 +21,48 @@ def main():
     s.connect((HOST, PORT))
 
     # Display a connection message
+    print("\n***********************************************")
     print(f'Connected to: {HOST} on port: {PORT}')
-    response = s.recv(2048)
-    print(response.decode())
+    
+    try:
+        # Receive the server's initial message
+        data = s.recv(2048)
+        print(data.decode())
 
-    # while True:
-    #     message = s.recv(2048) 
-    #     print(message)
+        # Client's initial message to the server
+        data = input(">")
 
-    close_msg = "/q"
-    s.send(close_msg.encode())
+        # If the message is quit, then end the client connection
+        if data[:2] == "/q":
+            s.send(data.encode())
+            s.close()
+            return
+
+        data += "\nType /q to quit\nEnter message to send..."
+        s.send(data.encode())
+    
+
+        # Maintain a connection with the server until /q is received
+        while True:
+            # Recieve the server's message
+            data = s.recv(2048)
+
+            # Test for /q connection to close the connection
+            if data.decode()[:2] == "/q":
+                break
+            else:
+                print(data.decode())
+
+            # Create and send the client's message
+            data = input(">")
+            s.send(data.encode())
+
+            # If the message is quit, then end the client connection
+            if data.decode()[:2] == "/q":
+                break
+
+    except:
+        print("Socket error")
 
     # Close the client socket
     s.close()
