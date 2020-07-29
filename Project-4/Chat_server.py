@@ -30,7 +30,7 @@ def main():
     conn, addr = s.accept()
 
     # If connection was successful
-    try:
+    if conn:
         # Print connection information to the CLI
         print("**************************************************")
         print(f"Connected by {addr}")
@@ -57,6 +57,10 @@ def main():
             data = input(">")
             conn.send(data.encode())
 
+            # If the message is quit, then close the connection
+            if data[:2] == "/q":
+                break
+
             # Recieve the clients message and print
             data = conn.recv(2048)
 
@@ -68,8 +72,13 @@ def main():
         
 
     # Print an error if the connection failed
-    except:
-        print("Socket error")
+    else:
+        # Test for /q connection to close the connection
+        if data[:2] == "/q":
+            s.close()
+            return
+        else:
+            print("Socket error")
 
     # Close the socket
     s.close()

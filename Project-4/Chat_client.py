@@ -16,13 +16,17 @@ PORT = 52000
 # MAIN ---------------------------------------------------------------------- #
 
 def main():
-    # Create a TCP socket for the client
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT))
+    try:
+        # Create a TCP socket for the client
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((HOST, PORT))
 
-    # Display a connection message
-    print("\n***********************************************")
-    print(f'Connected to: {HOST} on port: {PORT}')
+        # Display a connection message
+        print("\n***********************************************")
+        print(f'Connected to: {HOST} on port: {PORT}')
+    except:
+        print("Error: No open server socket")
+        return
     
     try:
         # Receive the server's initial message
@@ -56,13 +60,18 @@ def main():
             # Create and send the client's message
             data = input(">")
             s.send(data.encode())
-
+        
             # If the message is quit, then end the client connection
-            if data.decode()[:2] == "/q":
+            if data[:2] == "/q":
                 break
-
+                
     except:
-        print("Socket error")
+        # Test for /q connection to close the connection
+        if data[:2] == "/q":
+            s.close()
+            return
+        else:
+            print("Socket error")
 
     # Close the client socket
     s.close()
