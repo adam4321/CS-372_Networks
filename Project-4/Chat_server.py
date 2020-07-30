@@ -5,6 +5,8 @@
 **  Description:  CS-372 Networks project 4. This project is to create a simple
 **                chat server and client in Python. This file implements the
 **                server side of the project. 
+**
+**                This program must be started the client can connect to it!
 ****************************************************************************'''
 
 import socket
